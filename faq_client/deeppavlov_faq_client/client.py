@@ -1,17 +1,15 @@
-from .. import base_client
+from ..base_client import BaseFaqClient
 from settings.settings import SettingsProvider
 from utils import requester
 
-settings = SettingsProvider()
 
-
-class DeepPavlovClient(base_client.BaseFaqClient):
+class DeepPavlovRestApiClient(BaseFaqClient):
     _base_url = None
     def init(self) -> None:
-        protocol = settings.get('DP_FAQ_HTTP')
-        host = settings.get('DP_FAQ_HOST')
-        port = settings.get('DP_FAQ_PORT')
-        path = settings.get('DP_FAQ_API')['send_model']
+        protocol = SettingsProvider.get('DP_FAQ_HTTP')
+        host = SettingsProvider.get('DP_FAQ_HOST')
+        port = SettingsProvider.get('DP_FAQ_PORT')
+        path = SettingsProvider.get('DP_FAQ_API')['send_model']
 
         url = f"{protocol}://{host}:{port}/{path}"
         self._base_url = url
