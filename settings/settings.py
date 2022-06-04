@@ -28,14 +28,12 @@ class SettingsProvider:
         "DP_UPD_DAEMON_UPDATE_THR_MINUTE": 30
     }
 
-
     def __init__(self):
         file = open(f"{os.getcwd()}/production.settings.json")
         settings = file.read()
         for pattern in PATH_RESOLVER_MIDDLEWARE:
             settings = settings.replace('{' + pattern + '}', PATH_RESOLVER_MIDDLEWARE[pattern])
         SettingsProvider.SETTINGS = json.loads(settings)
-        print(SettingsProvider.SETTINGS)
 
     @staticmethod
     def get(setting_name: str, default=None):

@@ -1,7 +1,7 @@
-from fastapi import FastAPI, UploadFile
+import requests
+from fastapi import FastAPI, UploadFile, File
 
 from daemon.DeeppavlovUpdaterDaemon import DeeppavlovUpdaterDaemon
-from faq_client.deeppavlov_faq_client.client import DeepPavlovRestApiClient
 from faq_client.deeppavlov_faq_client.self_hosted_client import DeepPavlovSelfHostedClient
 from faq_client.static_provider import FaqClientProvider
 from settings.settings import SettingsProvider
@@ -15,11 +15,6 @@ faq_client.init()
 updater_daemon = DeeppavlovUpdaterDaemon(faq_client)
 updater_daemon.start()
 
-# DEBUG
-# faq_client.init()
-# faq_client.send_question("Нужен ли мне паспорт?")
-######
-
 
 @app.get('/faq')
 def faq(question: str):
@@ -27,9 +22,19 @@ def faq(question: str):
     res = client.send_question(question)
     return {"answer": res}
 
+
 @app.get('/faq-voice')
-def faq(voice: UploadFile):
-    pass
+def faq(voice: UploadFile = File(...)):
+    url = f"https://{SettingsProvider.get('RECOGNIZER_IP')}/messages"
+    res = requests.post(url, files={'file': voice.file})
+    if not res.ok:
+        res.raise_for_status()
+    res = res.json()
+    if 'text' not in res:
+        raise Exception(f"Recognizer returned unexpected answer: {res}")
+    client = FaqClientProvider.get()
+    answer = client.send_question(res['text'])
+    return {"answer": answer}
 
 
 @app.get('/faq/relearn')
